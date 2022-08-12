@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>TheSeaToad</title>
+    <link>http://example.org/</link>
+    <description>Recent content on TheSeaToad</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 11 Aug 2022 20:35:23 -0700</lastBuildDate><atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Rust For Game Development #1 -- Rock Paper Scissors</title>
+      <link>http://example.org/posts/rustforgamedevelopment1/</link>
+      <pubDate>Thu, 11 Aug 2022 20:35:23 -0700</pubDate>
+      
+      <guid>http://example.org/posts/rustforgamedevelopment1/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

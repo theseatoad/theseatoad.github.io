@@ -1,0 +1,4 @@
+baseURL = 'http://example.org/'
+languageCode = 'en-us'
+title = 'TheSeaToad'
+theme = "minimal-bootstrap-hugo-theme"
