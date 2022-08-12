@@ -1,4 +1,4 @@
-baseURL = 'http://example.org/'
+baseURL = 'https://theseatoad.github.io'
 languageCode = 'en-us'
 title = 'TheSeaToad'
 theme = "minimal-bootstrap-hugo-theme"
