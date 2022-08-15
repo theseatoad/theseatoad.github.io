@@ -131,7 +131,7 @@ enum GameResult {
 
 It is important to derive both Debug and PartialEq as we will want to both print to the console the value of the enum (Debug) and compare moves and game results to other moves and game results (PartialEq).
 
-Now that we have an enum to store moves, it is important to define how a string can be converted into a move. This can be done through implementing the from_str trait for our enum.
+Now that we have an enum to store moves, it is important to define how a string can be converted into a move. This can be done through implementing the FromStr trait for our enum.
 
 ```rust
 impl FromStr for Move {
@@ -163,7 +163,7 @@ let our_move : Move = match Move::from_str(&args.pattern) {
 };
 ```
 
-Pattern matching is a powerful feature of rust as it enforces all code paths to be handled. Sometimes it may feel robust, but a successful compile becomes more powerful knowing all code paths are being explicitly handled.
+Pattern matching is a powerful feature of rust as it enforces all code paths to be handled. Sometimes it may feel tedious, but a successful compile becomes more powerful knowing all code paths are being explicitly handled.
 
 We have now read input from the user!
 
