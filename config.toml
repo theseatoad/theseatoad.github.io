@@ -24,7 +24,6 @@ theme = "minimal-bootstrap-hugo-theme"
   customCodeStyle = true
   customBlockquoteStyle = true
   showPostSummary = false
-  cookieConsent = true
   includeBootstrapJs = false
 
 [menu]
