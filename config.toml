@@ -1,4 +1,4 @@
-baseURL = "https://theseatoad.github.io"
+baseURL = "https://theseatoad.com"
 languageCode = "en-us"
 title = "TheSeaToad"
 theme = "minimal-bootstrap-hugo-theme"
