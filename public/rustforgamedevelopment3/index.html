@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <meta name="generator" content="Hugo 0.101.0" />
+
+  
+  <meta name="description" content="Some description">
+  
+
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="https://theseatoad.com/apple-touch-icon.png">
+
+  
+  <link rel="icon" type="image/png" sizes="32x32" href="https://theseatoad.com/favicon-32x32.png">
+
+  
+  <link rel="icon" type="image/png" sizes="16x16" href="https://theseatoad.com/favicon-16x16.png">
+
+  
+  <link rel="manifest" href="https://theseatoad.com/site.webmanifest">
+
+  
+  <link rel="mask-icon" href="https://theseatoad.com/safari-pinned-tab.svg" color="">
+
+  <meta name="msapplication-TileColor" content="">
+
+  <meta name="theme-color" content="">
+
+  
+  <link rel="stylesheet" href="https://theseatoad.com/css/bootstrap.min.css" />
+
+  
+  <title>Rust For Game Development #3 -- Game of Life | TheSeaToad</title>
+  
+
+  <style>
+body {
+  min-width: 300px;
+}
+
+.custom-navbar {
+  margin-bottom: 1em;
+  height: 60px;
+}
+
+.custom-navbar a {
+  display: inline-block; 
+  padding: 18px 0;
+  margin-right: 1em; 
+  font-weight: bold; 
+}
+
+.custom-navbar a:hover,
+.custom-navbar a:focus {
+  text-decoration: none; 
+}
+
+@media print {
+  .custom-navbar {
+    display: none;
+  }
+}
+
+article {
+  padding-bottom: 1em;
+}
+
+img {
+  max-width: 100%;
+}
+
+
+body {
+  background-color: #fff;
+}
+
+
+
+body {
+  color: #212529;
+}
+
+
+
+a {
+  color: #007bff;
+}
+
+
+
+a:hover,
+a:focus {
+  color: #0056b3;
+}
+
+
+
+.custom-navbar {
+  background-color: #212529;
+}
+
+
+
+.custom-navbar a {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+
+
+.custom-navbar a:hover,
+.custom-navbar a:focus {
+  color: rgba(255, 255, 255, 1);
+}
+
+
+
+.container {
+  max-width: 800px;
+}
+
+
+
+pre {
+  display: block;
+  padding: 9.5px;
+  word-break: break-all;
+  word-wrap: break-word;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+pre code {
+  padding: 0;
+  font-size: inherit;
+  color: inherit; 
+  white-space: pre-wrap;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+code {
+  padding: 2px 4px;
+  color: inherit; 
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: .9em;
+}
+
+
+
+blockquote,
+.blockquote {
+  padding: 10px 20px;
+  margin: 0 0 20px;
+  font-size: 1em;
+  border-left: 5px solid #6c757d;
+}
+
+</style>
+</head>
+
+<body>
+  <nav class="custom-navbar">
+  <div class="container">
+    
+    <a href="/">Posts</a>
+    
+    <a href="/tags/">Tags</a>
+    
+    <a href="/about/">About</a>
+    
+  </div>
+</nav>
+  
+  <div class="container">
+    <article>
+      <h1>Rust For Game Development #3 &ndash; Game of Life</h1>
+<p>
+  <small class="text-secondary">
+  
+  
+  Aug 30, 2022
+  </small>
+  
+
+<small><code><a href="https://theseatoad.com/tags/rust">Rust</a></code></small>
+
+
+<small><code><a href="https://theseatoad.com/tags/game-development">Game Development</a></code></small>
+
+
+<small><code><a href="https://theseatoad.com/tags/bevy">Bevy</a></code></small>
+
+  
+
+</p>
+<h2 id="prelude">Prelude</h2>
+<p>Follow along this tutorial using the cooresponding repository on <a href="https://github.com/theseatoad/conway_game_of_life">Github</a>. Snippets here will highlight important structs and methods, but for compiling code, refer to the link above.</p>
+<p>This post is highlighing how the game logic and game state can be abstracted away from the rendering of the game. It is a good habit to decouple the code in this manner as it will be easier to iterate on either systems as well as writing tests.</p>
+<p>There are two flaws in this repository. Firstly, each game tick, the gui redraws the entire board. Secondly, during each game tick, the world iterates over each tile which results in many useless calculations.</p>
+<h2 id="introduction">Introduction</h2>
+<p>One good habit to get into while starting a new game is seperating game logic and game rendering. It is very easy to couple code between these two systems which can result in many bugs down the line. Additionally, bugs will become hard to fix as these sytems will touching many different spots of code. Having two completely seperate systems is one robust way to avoid this class of bug.</p>
+<p>For this implementation of <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway&rsquo;s Game of Life</a>, the project will be split into two seperate directories. The first one named cgol will be in charge of the implementation of the rules, tiles, and world. Secondly, the gui directory will be in charge of reading from cgol, and displaying the state of the world.</p>
+<h2 id="implementing-conways-game-of-life-backend">Implementing Conway&rsquo;s Game of Life Backend</h2>
+<p>Let&rsquo;s first initalize our game of life crate.</p>
+<pre tabindex="0"><code>$ cargo new cgol
+</code></pre><p>Since this will serve purely as a library for our gui to use, we will need to replace main.rs with lib.rs. This is the convention for writing public code for distribution.</p>
+<p>There are two main structures in Conway&rsquo;s Game of Life. There is a world struct containing both the width of the board and the list of tiles, and secondly, a tile struct containing it&rsquo;s state.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Tile</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> on: <span style="color:#66d9ef">bool</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">World</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> width: <span style="color:#66d9ef">i32</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pub</span> tiles: Vec<span style="color:#f92672">&lt;</span>Tile<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>With these two structs created, the rules can now be implemented. The logic of the game is the same every single time; The world iterates over each tile, checking it&rsquo;s state and its neighbour&rsquo;s state, and applying three simple rules. The rules are as follows:</p>
+<ol>
+<li>Any live cell with two or three live neighbours survives.</li>
+<li>Any dead cell with three live neighbours becomes a live cell.</li>
+<li>All other live cells die in the next generation. Similarly, all other dead cells stay dead.</li>
+</ol>
+<p>To accomplish this, a function implementation on the tile struct is a good strategy.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">evolve</span>(
+</span></span><span style="display:flex;"><span>    self,
+</span></span><span style="display:flex;"><span>    left: Option<span style="color:#f92672">&lt;&amp;</span>Tile<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    up: Option<span style="color:#f92672">&lt;&amp;</span>Tile<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    right: Option<span style="color:#f92672">&lt;&amp;</span>Tile<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    down: Option<span style="color:#f92672">&lt;&amp;</span>Tile<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    topleft: Option<span style="color:#f92672">&lt;&amp;</span>Tile<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    topright: Option<span style="color:#f92672">&lt;&amp;</span>Tile<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    bottomleft: Option<span style="color:#f92672">&lt;&amp;</span>Tile<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    bottomright: Option<span style="color:#f92672">&lt;&amp;</span>Tile<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>) -&gt; <span style="color:#a6e22e">Tile</span>
+</span></span></code></pre></div><p>Optionals is useful here as in this game of life implementation, the world has borders. Because of this, there are many cases where some of the surrounding tiles do not exist. The next step is counting how many alive neighbours there are. Lastly, return a tile with the respective state based on the rules. Below is the code that is responsible for enforcing the rules.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> self.on <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> alive_neighbours <span style="color:#f92672">==</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">||</span> alive_neighbours <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span> {
+</span></span><span style="display:flex;"><span>        Tile::new(<span style="color:#66d9ef">true</span>)
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        Tile::new(<span style="color:#66d9ef">false</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> alive_neighbours <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span> {
+</span></span><span style="display:flex;"><span>        Tile::new(<span style="color:#66d9ef">true</span>)
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        Tile::new(<span style="color:#66d9ef">false</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Great. Now, it is useful to create a method on the world struct that iterates over all of the tiles and &ldquo;evolves&rdquo; them.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">pub</span> <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">tick</span>(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> self) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> new_world: Vec<span style="color:#f92672">&lt;</span>Tile<span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> Vec::new();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> y <span style="color:#66d9ef">in</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">..</span>self.width {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> x <span style="color:#66d9ef">in</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">..</span>self.width {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> new_tile <span style="color:#f92672">=</span> self.get((x, y)).unwrap().evolve(
+</span></span><span style="display:flex;"><span>                    self.get((x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>, y)),
+</span></span><span style="display:flex;"><span>                    self.get((x <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, y)),
+</span></span><span style="display:flex;"><span>                    self.get((x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>, y<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)),
+</span></span><span style="display:flex;"><span>                    self.get((x <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, y<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)),
+</span></span><span style="display:flex;"><span>                    self.get((x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>, y<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)),
+</span></span><span style="display:flex;"><span>                    self.get((x <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, y<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)),
+</span></span><span style="display:flex;"><span>                    self.get((x, y<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)),
+</span></span><span style="display:flex;"><span>                    self.get((x, y<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)),
+</span></span><span style="display:flex;"><span>                );
+</span></span><span style="display:flex;"><span>                new_world.push(new_tile.clone());
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    self.tiles <span style="color:#f92672">=</span> new_world
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>The get method implement for world used above is a quick helper function used to return the optional of the tile at that world location.</p>
+<p>It is helpful to write some test cases in this library to ensure the rules are all implemented correctly. Once this is done, it is time to write a gui on top of this.</p>
+<h2 id="gui">GUI</h2>
+<p>As seen in <a href="https://theseatoad.com/rustforgamedevelopment2/">tutorial two</a>, writing graphics will require a window and a drawable surface. I am not inclined to use wgpu directly this time, so I will use a crate that implements higher-level APIs ontop of wgpu. The crate I will be using is <a href="https://crates.io/crates/bevy">bevy</a>. There is a ton that comes with bevy, but for this tutorial, only the rendering aspects will be highlighted.</p>
+<p>To start, go back to the root level directory for whole repository and</p>
+<pre tabindex="0"><code>$ cargo new gui
+</code></pre><p>To use bevy and also be able to reference our game of life library, the cargo.toml needs to be updated with these dependencies.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span>[<span style="color:#a6e22e">dependencies</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">bevy</span> = <span style="color:#e6db74">&#34;0.8&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cgol</span> = {<span style="color:#a6e22e">path</span> = <span style="color:#e6db74">&#34;../cgol&#34;</span>}
+</span></span></code></pre></div><p>To start out with getting a window using bevy, we need to create a new app, and feed it the plugins we need for our game. As of writing this tutorial, the default plugins are</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#e6db74">/// This plugin group will add all the default plugins:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`LogPlugin`](bevy_log::LogPlugin)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`CorePlugin`](bevy_core::CorePlugin)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`TimePlugin`](bevy_time::TimePlugin)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`TransformPlugin`](bevy_transform::TransformPlugin)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`HierarchyPlugin`](bevy_hierarchy::HierarchyPlugin)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`DiagnosticsPlugin`](bevy_diagnostic::DiagnosticsPlugin)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`InputPlugin`](bevy_input::InputPlugin)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`WindowPlugin`](bevy_window::WindowPlugin)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`AssetPlugin`](bevy_asset::AssetPlugin)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`ScenePlugin`](bevy_scene::ScenePlugin)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`RenderPlugin`](bevy_render::RenderPlugin) - with feature `bevy_render`
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`SpritePlugin`](bevy_sprite::SpritePlugin) - with feature `bevy_sprite`
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`PbrPlugin`](bevy_pbr::PbrPlugin) - with feature `bevy_pbr`
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`UiPlugin`](bevy_ui::UiPlugin) - with feature `bevy_ui`
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`TextPlugin`](bevy_text::TextPlugin) - with feature `bevy_text`
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`AudioPlugin`](bevy_audio::AudioPlugin) - with feature `bevy_audio`
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`GilrsPlugin`](bevy_gilrs::GilrsPlugin) - with feature `bevy_gilrs`
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`GltfPlugin`](bevy_gltf::GltfPlugin) - with feature `bevy_gltf`
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">/// * [`WinitPlugin`](bevy_winit::WinitPlugin) - with feature `bevy_winit`
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">///
+</span></span></span></code></pre></div><p>Let&rsquo;s create an app and add these.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    App::new()
+</span></span><span style="display:flex;"><span>        .add_plugins(DefaultPlugins)
+</span></span><span style="display:flex;"><span>        .run();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>After this, a window should appear after running the gui crate.</p>
+<p>Before writing any more code, we need to think about what steps need to be taken to correctly display the cgol::world.</p>
+<ol>
+<li>Read inital values for tiles</li>
+<li>Initalize cgol::world with tiles and width</li>
+<li>Render tiles</li>
+<li>Tick world</li>
+<li>Back to step 3</li>
+</ol>
+<p>For the inital values for the tiles, it is easiest to just create a text file with 1&rsquo;s and 0&rsquo;s and read from that to seed the world.</p>
+<p>I created a CWorld Struct that is a wrapper ontop of cgol::world. It implements the default trait with the values based on what is in a text file.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">impl</span> Default <span style="color:#66d9ef">for</span> CWorld {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">default</span>() -&gt; <span style="color:#a6e22e">Self</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> tiles: Vec<span style="color:#f92672">&lt;</span>Tile<span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> Vec::new();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> world_string <span style="color:#f92672">=</span>
+</span></span><span style="display:flex;"><span>            fs::read_to_string(<span style="color:#e6db74">&#34;../assets/world.txt&#34;</span>).expect(<span style="color:#e6db74">&#34;Could not read world file&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> <span style="color:#66d9ef">mut</span> tile <span style="color:#66d9ef">in</span> world_string.split(<span style="color:#e6db74">&#34;,&#34;</span>) {
+</span></span><span style="display:flex;"><span>            tile <span style="color:#f92672">=</span> tile.trim_matches(<span style="color:#e6db74">&#39;\n&#39;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">match</span> tile {
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;0&#34;</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>                    tiles.push(Tile::new(<span style="color:#66d9ef">false</span>));
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;1&#34;</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>                    tiles.push(Tile::new(<span style="color:#66d9ef">true</span>));
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                _ <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>                    println!(<span style="color:#e6db74">&#34;Invalid tile&#34;</span>);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        CWorld {
+</span></span><span style="display:flex;"><span>            world: <span style="color:#a6e22e">World</span> { width: <span style="color:#ae81ff">25</span>, tiles },
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Great, that is steps 1 and 2 complete. Now, we need to loop over the CWorld.world.tiles rendering each to the screen. This is accomplished by grabbing the world from the app, looping over all the tiles, and matching on true or false. In either case, we spawn a new sprite.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">draw_world</span>(<span style="color:#66d9ef">mut</span> commands: <span style="color:#a6e22e">Commands</span>, asset_server: <span style="color:#a6e22e">Res</span><span style="color:#f92672">&lt;</span>AssetServer<span style="color:#f92672">&gt;</span>, <span style="color:#66d9ef">mut</span> world: <span style="color:#a6e22e">ResMut</span><span style="color:#f92672">&lt;</span>CWorld<span style="color:#f92672">&gt;</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> x <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#66d9ef">mut</span> y <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> tile <span style="color:#66d9ef">in</span> <span style="color:#f92672">&amp;</span>world.world.tiles {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">match</span> tile.on {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">true</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>                commands.spawn_bundle(SpriteBundle {
+</span></span><span style="display:flex;"><span>                    sprite: <span style="color:#a6e22e">Sprite</span> {
+</span></span><span style="display:flex;"><span>                        color: <span style="color:#a6e22e">Color</span>::BLACK.into(),
+</span></span><span style="display:flex;"><span>                        <span style="color:#f92672">..</span>default()
+</span></span><span style="display:flex;"><span>                    },
+</span></span><span style="display:flex;"><span>                    texture: <span style="color:#a6e22e">asset_server</span>.load(<span style="color:#e6db74">&#34;tile.png&#34;</span>),
+</span></span><span style="display:flex;"><span>                    transform: <span style="color:#a6e22e">Transform</span> {
+</span></span><span style="display:flex;"><span>                        translation: <span style="color:#a6e22e">Vec3</span> {
+</span></span><span style="display:flex;"><span>                            x: ((x <span style="color:#f92672">*</span> TILEWIDTH) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">f32</span>) <span style="color:#f92672">-</span> XOFFSET <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">f32</span>,
+</span></span><span style="display:flex;"><span>                            y: ((y <span style="color:#f92672">*</span> TILEWIDTH) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">f32</span>) <span style="color:#f92672">-</span> YOFFSET <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">f32</span>,
+</span></span><span style="display:flex;"><span>                            z: <span style="color:#ae81ff">1.</span>,
+</span></span><span style="display:flex;"><span>                        },
+</span></span><span style="display:flex;"><span>                        <span style="color:#f92672">..</span>default()
+</span></span><span style="display:flex;"><span>                    },
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">..</span>default()
+</span></span><span style="display:flex;"><span>                });
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">false</span> <span style="color:#f92672">=&gt;</span> {
+</span></span><span style="display:flex;"><span>                commands.spawn_bundle(SpriteBundle {
+</span></span><span style="display:flex;"><span>                    sprite: <span style="color:#a6e22e">Sprite</span> {
+</span></span><span style="display:flex;"><span>                        color: <span style="color:#a6e22e">Color</span>::WHITE.into(),
+</span></span><span style="display:flex;"><span>                        <span style="color:#f92672">..</span>default()
+</span></span><span style="display:flex;"><span>                    },
+</span></span><span style="display:flex;"><span>                    texture: <span style="color:#a6e22e">asset_server</span>.load(<span style="color:#e6db74">&#34;tile.png&#34;</span>),
+</span></span><span style="display:flex;"><span>                    transform: <span style="color:#a6e22e">Transform</span> {
+</span></span><span style="display:flex;"><span>                        translation: <span style="color:#a6e22e">Vec3</span> {
+</span></span><span style="display:flex;"><span>                            x: ((x <span style="color:#f92672">*</span> TILEWIDTH) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">f32</span>) <span style="color:#f92672">-</span> XOFFSET <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">f32</span>,
+</span></span><span style="display:flex;"><span>                            y: ((y <span style="color:#f92672">*</span> TILEWIDTH) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">f32</span>) <span style="color:#f92672">-</span> YOFFSET <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">f32</span>,
+</span></span><span style="display:flex;"><span>                            z: <span style="color:#ae81ff">1.</span>,
+</span></span><span style="display:flex;"><span>                        },
+</span></span><span style="display:flex;"><span>                        <span style="color:#f92672">..</span>default()
+</span></span><span style="display:flex;"><span>                    },
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">..</span>default()
+</span></span><span style="display:flex;"><span>                });
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> x <span style="color:#f92672">==</span> MAPWIDTH <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span> {
+</span></span><span style="display:flex;"><span>            x <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>            y <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            x <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    world.world.tick();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>With this method written, it will need to continually be called at a set interval. Inside of our main method, we will add a new system set. This system set will specify how frequently the draw_world method should be run. We should also add a window descriptor to our app letting winit know how big the window needs to be. This is important as the sprites do not scale to different window sizes. Lastly, we need a startup_system that will spawn a 2D camera so we can see our world!</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">fn</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>    App::new()
+</span></span><span style="display:flex;"><span>        .insert_resource(WindowDescriptor {
+</span></span><span style="display:flex;"><span>            title: <span style="color:#e6db74">&#34;Game of life&#34;</span>.to_string(),
+</span></span><span style="display:flex;"><span>            width: <span style="color:#ae81ff">700.</span>,
+</span></span><span style="display:flex;"><span>            height: <span style="color:#ae81ff">800.</span>,
+</span></span><span style="display:flex;"><span>            present_mode: <span style="color:#a6e22e">bevy</span>::window::PresentMode::Fifo,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">..</span>default()
+</span></span><span style="display:flex;"><span>        })
+</span></span><span style="display:flex;"><span>        .insert_resource(ImageSettings::default_nearest())
+</span></span><span style="display:flex;"><span>        .insert_resource(CWorld::default())
+</span></span><span style="display:flex;"><span>        .add_plugins(DefaultPlugins)
+</span></span><span style="display:flex;"><span>        .add_startup_system(startup)
+</span></span><span style="display:flex;"><span>        .add_system_set(
+</span></span><span style="display:flex;"><span>            SystemSet::new()
+</span></span><span style="display:flex;"><span>                .with_run_criteria(FixedTimestep::step(TICKRATE <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">f64</span>))
+</span></span><span style="display:flex;"><span>                .with_system(draw_world),
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>        .run();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>With all of this code written, the game should work now. Try adding new values in the world.txt file to see how different seeds progress over time.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Having seperating of systems made this implementation of game of life easy to read and change. Any change to the renderer would not effect the underlying simulation itself. This is an important concept in game development as artists and game designers do not neccessaily need to know the underlying code of a game. They only need to know how to incorporate their work into the game. Seperation of systems also allows for collaberation between multiple people as library work can happen at the same time level design and art is implemented.</p>
+<p>Secondly, bevy made it very easy to create a window, draw sprites, and call functions at set intervals. It comes with many tools that are useful for game development and simulations. In the next tutorials, we will continue to expand on <a href="https://crates.io/crates/bevy">bevy</a>, and how that can help us write games in rust!</p>
+
+    </article>
+  </div>
+
+  
+  
+  
+
+  
+
+  
+</body>
+
+</html>

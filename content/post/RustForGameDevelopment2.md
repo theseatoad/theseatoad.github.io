@@ -4,15 +4,15 @@ date: 2022-08-15T10:54:31-07:00
 publishdate: 2022-08-15
 lastmod: 2022-08-15
 draft: false
-tags: ["Rust", "Game Development", "Graphics"]
+tags: ["Rust", "Graphics"]
 categories: []
 ---
 
 ## Prelude
 
-Follow along this tutorial using cooresponding repository on [Github](https://github.com/theseatoad/simple_crossplatform_2d_graphics). Snippets here will highlight important structs and methods, but for compiling code, refer to the link above.
+Follow along this tutorial using the cooresponding repository on [Github](https://github.com/theseatoad/simple_crossplatform_2d_graphics). Snippets here will highlight important structs and methods, but for compiling code, refer to the link above.
 
-This post will be all about graphics. Writing a game will not look like this in practice, unless you write your own engine. If this is enjoyable to you, maybe you can go about writing your own graphics engine. If not, there is plently of higher-level crates to leverage. See Rust for Game Development #3 for how to interface with a higher-level crate.
+This post will be all about graphics. Writing a game will not look like this in practice, unless you write your own engine. If this is enjoyable to you, maybe you can go about writing your own graphics engine. If not, there is plently of higher-level crates to leverage. See [Rust for Game Development #3](https://theseatoad.com/rustforgamedevelopment3) for how to interface with a higher-level crate.
 
 ## Introduction
 

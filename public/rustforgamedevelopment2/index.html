@@ -193,17 +193,14 @@ blockquote,
 <small><code><a href="https://theseatoad.com/tags/rust">Rust</a></code></small>
 
 
-<small><code><a href="https://theseatoad.com/tags/game-development">Game Development</a></code></small>
-
-
 <small><code><a href="https://theseatoad.com/tags/graphics">Graphics</a></code></small>
 
   
 
 </p>
 <h2 id="prelude">Prelude</h2>
-<p>Follow along this tutorial using cooresponding repository on <a href="https://github.com/theseatoad/simple_crossplatform_2d_graphics">Github</a>. Snippets here will highlight important structs and methods, but for compiling code, refer to the link above.</p>
-<p>This post will be all about graphics. Writing a game will not look like this in practice, unless you write your own engine. If this is enjoyable to you, maybe you can go about writing your own graphics engine. If not, there is plently of higher-level crates to leverage. See Rust for Game Development #3 for how to interface with a higher-level crate.</p>
+<p>Follow along this tutorial using the cooresponding repository on <a href="https://github.com/theseatoad/simple_crossplatform_2d_graphics">Github</a>. Snippets here will highlight important structs and methods, but for compiling code, refer to the link above.</p>
+<p>This post will be all about graphics. Writing a game will not look like this in practice, unless you write your own engine. If this is enjoyable to you, maybe you can go about writing your own graphics engine. If not, there is plently of higher-level crates to leverage. See <a href="https://theseatoad.com/rustforgamedevelopment3">Rust for Game Development #3</a> for how to interface with a higher-level crate.</p>
 <h2 id="introduction">Introduction</h2>
 <p>Game development is intrinsically related to computer graphics. Rendering graphics to the display is not an easy feat due to users having both different operating systems and different hardware. It is also not as simple as asking to display a certain RGBA value at a certain XY coordinate. This easy solution quickly falls apart even in 2D games when you think about pixel density on different displays, different windows on the OS, z-depth, etc.</p>
 <p>For learning how to simply write code to draw images on the screen, using a crate is a must. Without leveraging pre-existing code written by the community, you would have to be directly interfacing with the your computer&rsquo;s OS and GPU language.</p>

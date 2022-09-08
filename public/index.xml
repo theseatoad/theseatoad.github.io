@@ -6,14 +6,24 @@
     <description>Recent content on TheSeaToad</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 15 Aug 2022 10:54:31 -0700</lastBuildDate><atom:link href="https://theseatoad.com/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 30 Aug 2022 20:03:00 -0700</lastBuildDate><atom:link href="https://theseatoad.com/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Rust For Game Development #3 -- Game of Life</title>
+      <link>https://theseatoad.com/rustforgamedevelopment3/</link>
+      <pubDate>Tue, 30 Aug 2022 20:03:00 -0700</pubDate>
+      
+      <guid>https://theseatoad.com/rustforgamedevelopment3/</guid>
+      <description>Prelude Follow along this tutorial using the cooresponding repository on Github. Snippets here will highlight important structs and methods, but for compiling code, refer to the link above.
+This post is highlighing how the game logic and game state can be abstracted away from the rendering of the game. It is a good habit to decouple the code in this manner as it will be easier to iterate on either systems as well as writing tests.</description>
+    </item>
+    
     <item>
       <title>Rust For Game Development #2 -- Simple cross-platform graphics</title>
       <link>https://theseatoad.com/rustforgamedevelopment2/</link>
       <pubDate>Mon, 15 Aug 2022 10:54:31 -0700</pubDate>
       
       <guid>https://theseatoad.com/rustforgamedevelopment2/</guid>
-      <description>Prelude Follow along this tutorial using cooresponding repository on Github. Snippets here will highlight important structs and methods, but for compiling code, refer to the link above.
+      <description>Prelude Follow along this tutorial using the cooresponding repository on Github. Snippets here will highlight important structs and methods, but for compiling code, refer to the link above.
 This post will be all about graphics. Writing a game will not look like this in practice, unless you write your own engine. If this is enjoyable to you, maybe you can go about writing your own graphics engine. If not, there is plently of higher-level crates to leverage.</description>
     </item>
     
