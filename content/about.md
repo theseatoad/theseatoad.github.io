@@ -3,13 +3,13 @@ title: "About"
 date: "2014-04-09"
 ---
 
-## 
+💻 -- [GitHub](https://github.com/theseatoad)
 
-I like to play and make games. I also like to write rust code. Sometimes I write and record tutorials.
+📹 -- [Youtube](https://www.youtube.com/@theseatoad/)
 
-## Other places to find me
+🐦 -- [Twitter](https://twitter.com/the_seatoad/)
 
-* [GitHub](https://github.com/theseatoad)
-* [Youtube](https://www.youtube.com/channel/UCTnWP9izIBjfqO6_SYp8nSg)
-* [Itch.io](https://the-seatoad.itch.io)
+🖼️ -- [Instagram](https://www.instagram.com/theseatoad/)
 
+-------
+I am a full-time software engineer, part time game developer. I enjoy programming in rust and creating pixel art.

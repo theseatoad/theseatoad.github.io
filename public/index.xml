@@ -44,8 +44,11 @@ Safe code It needs to support unloading and loading game objects frequently. It 
       <pubDate>Wed, 09 Apr 2014 00:00:00 +0000</pubDate>
       
       <guid>https://theseatoad.com/about/</guid>
-      <description> I like to play and make games. I also like to write rust code. Sometimes I write and record tutorials.
-Other places to find me GitHub Youtube Itch.io </description>
+      <description>💻 &amp;ndash; GitHub
+📹 &amp;ndash; Youtube
+🐦 &amp;ndash; Twitter
+🖼️ &amp;ndash; Instagram
+I am a full-time software engineer, part time game developer. I enjoy programming in rust and creating pixel art.</description>
     </item>
     
   </channel>
