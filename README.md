@@ -1,6 +1,9 @@
 # theseatoad.com
 
-
-I write about games and game development.
-
 https://theseatoad.com
+
+
+## Deployment
+
+I am using webpack and wasm-pack to use wasm on browser.
+

@@ -1,0 +1,68 @@
+html {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: url(assets/icon.png);
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-color: beige;
+    animation: breathing 4s ease-in-out infinite normal;
+}
+
+@keyframes breathing {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(.9);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.row,
+.column {
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.row {
+    width: 95%;
+    background: rgba(225, 228, 195, .5);
+    height: 95px;
+    position: relative;
+    float: left;
+    margin: 1.5% 2.5% 0 2.5%;
+}
+
+h1 {
+    width: 100%;
+    position: absolute;
+    background: white;
+    padding: 8px;
+    line-height: 1em;
+    top: 0px;
+    font-size: 2em;
+    display: block;
+    font-weight: 200;
+    text-transform: uppercase;
+    text-align: center;
+    margin-left: -8px;
+    box-shadow: 0 8px 6px -6px rgba(0, 0, 0, 0.4);
+}
+
+.row:hover {
+    background: rgba(225, 228, 195, 1);
+    color: grey;
+}
+
+.row:active {
+    background: rgba(225, 228, 195, 1);
+    color: blue;
+}
