@@ -3,6 +3,7 @@ img {
     margin-left: auto;
     margin-right: auto;
     width: 50%;
+    height: 50%;
 }
 
 html {
@@ -17,17 +18,21 @@ html {
 
     25% {
         transform: rotate3d(1, 1, .2, 360deg);
+        -webkit-transform: rotate3d(1, 1, .2, 360deg);
     }
 
     50% {
         transform: rotate3d(.2, 1, 1, 0deg);
+        -webkit-transform: rotate3d(.2, 1, 1, 0deg);
     }
 
     75% {
         transform: rotate3d(0, 1, .2, 360deg);
+        -webkit-transform: rotate3d(0, 1, .2, 360deg);
     }
 
     100% {
         transform: rotate3d(0, 1, 0, 0deg);
+        -webkit-transform: rotate3d(0, 1, 0, 0deg);
     }
 }
